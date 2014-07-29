@@ -15,6 +15,8 @@
         <attr name="selectionDivider" format="reference" />
         <!-- @hide The height of the selection divider. -->
         <attr name="selectionDividerHeight" format="dimension" />
+        <!-- @hide The width of the selection divider. -->
+        <attr name="selectionDividerWidth" format="dimension" />
         <!-- @hide The distance between the two selection dividers. -->
         <attr name="selectionDividersDistance" format="dimension" />
         <!-- @hide The min height of the NumberPicker. -->
@@ -29,6 +31,17 @@
         <attr name="internalLayout" format="reference" />
         <!-- @hide The drawable for pressed virtual (increment/decrement) buttons. -->
         <attr name="virtualButtonPressedDrawable" format="reference"/>
+        <!-- @hide The color of output text view. -->
+        <attr name="pickerTextColor" format="color"/>
+        <!-- @hide The size of output text view. -->
+        <attr name="pickerTextSize" format="dimension"/>
+        <!-- @hide -->
+        <attr name="navigationMode" format="enum">
+            <enum name="none" value="0"/>
+            <enum name="wheel" value="1"/>
+            <enum name="linear" value="2"/>
+        </attr>
+
     </declare-styleable>
 
     <style name="NPWidget">

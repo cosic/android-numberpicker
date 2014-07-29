@@ -135,6 +135,11 @@ public class NumberPicker extends LinearLayout {
     private static final int UNSCALED_DEFAULT_SELECTION_DIVIDER_HEIGHT = 2;
 
     /**
+     * The default unscaled width of the selection divider.
+     */
+    private static final int UNSCALED_DEFAULT_SELECTION_DIVIDER_WIDTH = 0;
+
+    /**
      * The default unscaled distance between the selection dividers.
      */
     private static final int UNSCALED_DEFAULT_SELECTION_DIVIDERS_DISTANCE = 48;
@@ -410,6 +415,16 @@ public class NumberPicker extends LinearLayout {
     private final int mSolidColor;
 
     /**
+     * The output text color.
+     */
+    private final int mInputTextColor;
+
+    /**
+     * The output text size.
+     */
+    private final int mInputTextSize;
+
+    /**
      * Flag whether this widget has a selector wheel.
      */
     private final boolean mHasSelectorWheel;
@@ -423,6 +438,21 @@ public class NumberPicker extends LinearLayout {
      * The height of the selection divider.
      */
     private final int mSelectionDividerHeight;
+
+    /**
+     * The width of the selection divider.
+     */
+    private final int mSelectionDividerWidth;
+
+    /**
+     * The navigation mode of picker.
+     */
+
+    private final int mNavigationMode;
+
+    private final int NAVIGATION_MODE_DEFAULT = 0;
+    private final int NAVIGATION_MODE_WHEEL = 1;
+    private final int NAVIGATION_MODE_LINEAR = 2;
 
     /**
      * The current scroll state of the number picker.
@@ -580,13 +610,27 @@ public class NumberPicker extends LinearLayout {
 
         mSolidColor = attributesArray.getColor(R.styleable.NumberPicker_solidColor, 0);
 
+        mInputTextColor = attributesArray.getColor(R.styleable.NumberPicker_pickerTextColor, 0);
+
+        mInputTextSize = attributesArray.getDimensionPixelSize(R.styleable.NumberPicker_pickerTextSize, 0);
+
         mSelectionDivider = attributesArray.getDrawable(R.styleable.NumberPicker_selectionDivider);
+
+        mNavigationMode = attributesArray.getInt(R.styleable.NumberPicker_navigationMode, NAVIGATION_MODE_DEFAULT);
 
         final int defSelectionDividerHeight = (int) TypedValue.applyDimension(
                 TypedValue.COMPLEX_UNIT_DIP, UNSCALED_DEFAULT_SELECTION_DIVIDER_HEIGHT,
                 getResources().getDisplayMetrics());
+
+        final int defSelectionDividerWidth = (int) TypedValue.applyDimension(
+                TypedValue.COMPLEX_UNIT_DIP, UNSCALED_DEFAULT_SELECTION_DIVIDER_WIDTH,
+                getResources().getDisplayMetrics());
+
         mSelectionDividerHeight = attributesArray.getDimensionPixelSize(
                 R.styleable.NumberPicker_selectionDividerHeight, defSelectionDividerHeight);
+
+        mSelectionDividerWidth = attributesArray.getDimensionPixelSize(
+                R.styleable.NumberPicker_selectionDividerWidth, defSelectionDividerWidth);
 
         final int defSelectionDividerDistance = (int) TypedValue.applyDimension(
                 TypedValue.COMPLEX_UNIT_DIP, UNSCALED_DEFAULT_SELECTION_DIVIDERS_DISTANCE,
@@ -679,6 +723,24 @@ public class NumberPicker extends LinearLayout {
 
         // input text
         mInputText = (EditText) findViewById(R.id.np__numberpicker_input);
+        // Switch off editable, focusable and showing of keyboard;
+        mInputText.setClickable(false);
+        mInputText.setEnabled(false);
+        mInputText.setKeyListener(null);
+        mInputText.setFocusableInTouchMode(false);
+        mInputText.setFocusable(false);
+        mInputText.setLongClickable(false);
+        mInputText.setInputType(InputType.TYPE_NULL);
+        // Set text color;
+        if (mInputTextColor != 0)
+        {
+            mInputText.setTextColor(mInputTextColor);
+        }
+        // Set text size;
+        if (mInputTextSize != 0)
+        {
+            mInputText.setTextSize(TypedValue.COMPLEX_UNIT_PX, mInputTextSize);
+        }
         mInputText.setOnFocusChangeListener(new OnFocusChangeListener() {
             public void onFocusChange(View v, boolean hasFocus) {
                 if (hasFocus) {
@@ -1380,7 +1442,9 @@ public class NumberPicker extends LinearLayout {
         if (mMaxValue < mValue) {
             mValue = mMaxValue;
         }
-        boolean wrapSelectorWheel = mMaxValue - mMinValue > mSelectorIndices.length;
+        boolean wrapSelectorWheel = mNavigationMode == NAVIGATION_MODE_DEFAULT
+                ? mMaxValue - mMinValue > mSelectorIndices.length
+                : mNavigationMode == NAVIGATION_MODE_WHEEL;
         setWrapSelectorWheel(wrapSelectorWheel);
         initializeSelectorWheelIndices();
         updateInputTextView();
@@ -1486,13 +1550,21 @@ public class NumberPicker extends LinearLayout {
             // draw the top divider
             int topOfTopDivider = mTopSelectionDividerTop;
             int bottomOfTopDivider = topOfTopDivider + mSelectionDividerHeight;
-            mSelectionDivider.setBounds(0, topOfTopDivider, getRight(), bottomOfTopDivider);
+            int width = getWidth();
+            int leftOfDevider = 0;
+            int rightOfDevider = width;
+            if (mSelectionDividerWidth != 0 && mSelectionDividerWidth < width)
+            {
+                leftOfDevider = (width - mSelectionDividerWidth) / 2;
+                rightOfDevider = leftOfDevider + mSelectionDividerWidth;
+            }
+            mSelectionDivider.setBounds(leftOfDevider, topOfTopDivider, rightOfDevider, bottomOfTopDivider);
             mSelectionDivider.draw(canvas);
 
             // draw the bottom divider
             int bottomOfBottomDivider = mBottomSelectionDividerBottom;
             int topOfBottomDivider = bottomOfBottomDivider - mSelectionDividerHeight;
-            mSelectionDivider.setBounds(0, topOfBottomDivider, getRight(), bottomOfBottomDivider);
+            mSelectionDivider.setBounds(leftOfDevider, topOfBottomDivider, rightOfDevider, bottomOfBottomDivider);
             mSelectionDivider.draw(canvas);
         }
     }

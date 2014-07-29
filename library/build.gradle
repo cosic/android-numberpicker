@@ -1,3 +1,11 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:0.12.+'
+    }
+}
 apply plugin: 'android-library'
 
 dependencies {
@@ -6,7 +14,7 @@ dependencies {
 
 android {
     compileSdkVersion 17
-    buildToolsVersion "20.0.0"
+    buildToolsVersion "19.1.0"
 
     sourceSets {
         main {
@@ -31,9 +39,49 @@ android {
         debug.setRoot('build-types/debug')
         release.setRoot('build-types/release')
     }
-
     lintOptions {
-          abortOnError false
+        abortOnError false
     }
-
 }
+
+def xamarinProjectName = "android-numberpicker"
+task xamarinPrepare << {
+    def packageDir = "${buildDir}/xamarin/" + xamarinProjectName
+    def libsDir = "${project.projectDir}/libs"
+    def sourceDir = "${project.projectDir}"
+    copy {
+        from sourceDir + "/res"
+        into packageDir + "/res"
+    }
+    copy {
+        from sourceDir + "/AndroidManifest.xml"
+        into packageDir + "/bin"
+    }
+    copy {
+        from zipTree("${buildDir}/intermediates/bundles/release/classes.jar")
+        exclude '**/*.java'
+        into packageDir + "/bin/" + xamarinProjectName
+    }
+}
+
+task xamarinZipLibraries (type: Zip, dependsOn: xamarinPrepare) {
+    def packageDir = "${buildDir}/xamarin/" + xamarinProjectName
+    extension 'jar'
+    from fileTree(packageDir + "/bin/" + xamarinProjectName)
+    destinationDir file(packageDir + "/bin/")
+    doLast{
+        delete packageDir + "/bin/" + xamarinProjectName
+    }
+}
+
+task xamarinZip (type: Zip, dependsOn: xamarinZipLibraries) {
+    def packageDir = "${buildDir}/xamarin/" + xamarinProjectName
+    extension 'zip'
+    from fileTree(packageDir)
+    destinationDir file("${buildDir}/xamarin")
+    doLast{
+        delete packageDir
+    }
+}
+
+check.dependsOn("xamarinZip")
